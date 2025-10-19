@@ -1,0 +1,11 @@
+{
+  "dns": {
+    "status": "pending",
+    "hostname": "",
+    "address": ""
+  },
+  "ssl": {
+    "status": "pending",
+    "certificate_fingerprint": ""
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "identity_name": "whalez-ai-dev",
+  "founder_hash": "00000000000000000000000000000000",
+  "public_key_fingerprint": "whalez-dev-fingerprint",
+  "domain_seed": "whalez.dev",
+  "affirmation_log": "data/affirmations.jsonl"
+}
