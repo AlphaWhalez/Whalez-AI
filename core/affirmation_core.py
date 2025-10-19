@@ -7,6 +7,7 @@ external dependencies so it can run in constrained environments.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass, field
 import json
 import os
@@ -78,6 +79,8 @@ class AffirmationCore:
         if not self._log_path.exists():
             self._log_path.touch()
 
+        self._latest_entry: Optional[Dict[str, Any]] = self._load_latest_entry()
+
     @property
     def log_path(self) -> Path:
         return self._log_path
@@ -105,28 +108,71 @@ class AffirmationCore:
         with self._lock:
             with open(self._log_path, "a", encoding="utf-8") as handle:
                 handle.write(serialized + "\n")
+            self._latest_entry = deepcopy(entry)
         return entry
 
     def iter_entries(self) -> Iterable[Dict[str, Any]]:
         """Iterate through log entries in the order they were written."""
 
         with self._lock:
+            last_valid: Optional[Dict[str, Any]] = None
             with open(self._log_path, "r", encoding="utf-8") as handle:
                 for line in handle:
                     if not line.strip():
                         continue
                     try:
-                        yield json.loads(line)
+                        entry = json.loads(line)
                     except json.JSONDecodeError:
                         continue  # gracefully skip malformed lines
+                    last_valid = entry
+                    yield entry
+            self._latest_entry = deepcopy(last_valid) if last_valid is not None else None
 
     def latest(self) -> Optional[Dict[str, Any]]:
         """Return the most recent affirmation entry or ``None``."""
 
-        latest_entry: Optional[Dict[str, Any]] = None
-        for entry in self.iter_entries():
-            latest_entry = entry
-        return latest_entry
+        with self._lock:
+            if self._latest_entry is None:
+                return None
+            return deepcopy(self._latest_entry)
+
+    def _load_latest_entry(self) -> Optional[Dict[str, Any]]:
+        """Load the most recent affirmation entry from disk."""
+
+        try:
+            with open(self._log_path, "rb") as handle:
+                handle.seek(0, os.SEEK_END)
+                size = handle.tell()
+                if size == 0:
+                    return None
+
+                buffer = bytearray()
+                block_size = 1024
+                pointer = size
+                while pointer > 0:
+                    read_size = min(block_size, pointer)
+                    pointer -= read_size
+                    handle.seek(pointer)
+                    buffer[:0] = handle.read(read_size)
+                    if b"\n" in buffer:
+                        break
+
+                lines = buffer.splitlines()
+                for raw_line in reversed(lines):
+                    raw_line = raw_line.strip()
+                    if not raw_line:
+                        continue
+                    try:
+                        line = raw_line.decode("utf-8")
+                    except UnicodeDecodeError:
+                        continue
+                    try:
+                        return deepcopy(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+        except OSError:
+            return None
+        return None
 
 
 __all__ = ["AffirmationCore", "AffirmationError", "IdentityLoadError", "WhalezIdentity"]
