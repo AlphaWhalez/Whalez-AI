@@ -13,7 +13,7 @@ import json
 import os
 from pathlib import Path
 from threading import Lock
-from typing import Iterable, Dict, Any, Optional
+from typing import Iterable, Dict, Any, Optional, Mapping
 from datetime import datetime, timezone
 
 
@@ -95,7 +95,10 @@ class AffirmationCore:
             The record that was persisted to disk.
         """
 
-        metadata = metadata or {}
+        if metadata is not None and not isinstance(metadata, Mapping):
+            raise AffirmationError("metadata must be a mapping if provided")
+
+        metadata = dict(metadata or {})
         entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "identity": self.identity.identity_name,
@@ -104,7 +107,10 @@ class AffirmationCore:
             "metadata": metadata,
         }
 
-        serialized = json.dumps(entry, sort_keys=True)
+        try:
+            serialized = json.dumps(entry, sort_keys=True)
+        except (TypeError, ValueError) as exc:
+            raise AffirmationError("Affirmation entry is not JSON serializable") from exc
         with self._lock:
             with open(self._log_path, "a", encoding="utf-8") as handle:
                 handle.write(serialized + "\n")
