@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Whalez-AI Interface</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center h-screen">
+  <h1 class="text-3xl font-bold mb-4">🐋 Whalez-AI Sovereign Interface</h1>
+  <div id="status" class="text-green-400">Connecting...</div>
+  <script>
+    fetch('/api/ping')
+      .then(res => res.json())
+      .then(d => document.getElementById('status').innerText = d.status)
+      .catch(()=>document.getElementById('status').innerText='Offline');
+  </script>
+</body>
+</html>
