@@ -93,5 +93,10 @@ class WhalezChainVM:
         serialized = json.dumps(self.state, sort_keys=True).encode("utf-8")
         return hashlib.sha256(serialized).hexdigest()
 
+    def current_state_hash(self) -> str:
+        """Public wrapper returning the current state hash."""
+
+        return self._state_hash()
+
 
 __all__ = ["WhalezChainVM", "TransactionError"]
