@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import AgentPanel from "./AgentPanel";
 
 function Dashboard() {
   const [logs, setLogs] = useState([]);
@@ -33,6 +34,8 @@ function Dashboard() {
           </LineChart>
         </ResponsiveContainer>
       </div>
+
+      <AgentPanel />
     </div>
   );
 }
