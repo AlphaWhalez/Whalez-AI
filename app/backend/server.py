@@ -4,7 +4,7 @@ Whalez-AI Backend API Gateway
 ──────────────────────────────
 Bridges Sentinel + Agents to the Web & Mobile Apps
 """
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import json, os
 from datetime import datetime
 import random
@@ -69,6 +69,42 @@ def get_agents_status():
         },
     ]
     return jsonify({"agents": agents})
+
+
+# ─────────────────────────────────────────────────────────────
+# Whalez-AI Command Interface API
+# ─────────────────────────────────────────────────────────────
+@app.route("/api/command", methods=["POST"])
+def execute_command():
+    data = request.get_json(force=True)
+    command = data.get("command", "").strip()
+    timestamp = datetime.utcnow().isoformat() + "Z"
+
+    if not command:
+        return jsonify({"error": "Empty command"}), 400
+
+    # Simulated agent execution logic (to be replaced with real InterfaceAgent bridge)
+    response_map = {
+        "verify system integrity": "✅ System integrity verified successfully.",
+        "refresh ledger sync": "🔄 LedgerAgent sync initiated.",
+        "initiate proof cycle": "🧾 Runtime proof cycle started.",
+        "status check": "🧠 All core agents responsive.",
+    }
+    result = response_map.get(command.lower(), f"⚙️ Command '{command}' executed (stub).")
+
+    os.makedirs("data", exist_ok=True)
+    with open("data/command_log.jsonl", "a") as f:
+        f.write(json.dumps({
+            "timestamp": timestamp,
+            "command": command,
+            "result": result
+        }) + "\n")
+
+    return jsonify({
+        "timestamp": timestamp,
+        "command": command,
+        "result": result
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5050)
