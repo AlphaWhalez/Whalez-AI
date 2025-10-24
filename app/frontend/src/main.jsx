@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import axios from "axios";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import AgentPanel from "./AgentPanel";
+import CommandConsole from "./CommandConsole";
 
 function Dashboard() {
   const [logs, setLogs] = useState([]);
@@ -18,7 +19,7 @@ function Dashboard() {
   }, []);
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-6 space-y-6">
       <h1 className="text-3xl font-bold text-center">🐋 Whalez-AI Dashboard</h1>
       <p className="text-center text-green-400">{status}</p>
 
@@ -36,6 +37,7 @@ function Dashboard() {
       </div>
 
       <AgentPanel />
+      <CommandConsole />
     </div>
   );
 }
