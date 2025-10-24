@@ -216,3 +216,25 @@ web/assets/
 *.zip
 *.jsonl
 
+# Ignore runtime & build outputs
+\
+data/
+\
+node_modules/
+\
+android/
+\
+ios/
+\
+web/assets/
+\
+*.log
+\
+*.zip
+\
+*.jsonl
+\
+*.xcarchive
+\
+cap/build/
+
