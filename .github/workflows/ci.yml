@@ -28,3 +28,7 @@ jobs:
           name: web-dist
           path: web/dist
           retention-days: 7
+      - name: Preview web dist (summary)
+        run: |
+          echo "Web build created at web/dist" >> $GITHUB_STEP_SUMMARY
+          ls -lah web/dist >> $GITHUB_STEP_SUMMARY
