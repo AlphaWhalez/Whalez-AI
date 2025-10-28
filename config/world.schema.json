@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.0.1",
   "world": {
     "name": "Whalez-World",
     "realm": "Parallel-Sovereign",
@@ -20,43 +20,14 @@
         "ui_telemetry"
       ],
       "glow_levels": {
-        "founder_view": "full_glow_always",
+        "founder_view": "full",
         "user_view": "adaptive_by_account_level"
-      }
+      },
+      "registry_file": "config/ai_coach_registry.json"
     },
     "coach_network": {
-      "head_coaches": [
-        { "id": "coach:tara_davis", "role": "Head Coach Finance", "visibility": "primary" }
-      ],
-      "ai_coaches": {
-        "BASIC": [
-          { "id": "aicoach:basic_1", "role": "AI-Coach Basic A" },
-          { "id": "aicoach:basic_2", "role": "AI-Coach Basic B" },
-          { "id": "aicoach:basic_3", "role": "AI-Coach Basic C" }
-        ],
-        "PRO": [
-          { "id": "aicoach:pro_1", "role": "AI-Coach Pro A" },
-          { "id": "aicoach:pro_2", "role": "AI-Coach Pro B" },
-          { "id": "aicoach:pro_3", "role": "AI-Coach Pro C" }
-        ],
-        "VIP": [
-          { "id": "aicoach:vip_1", "role": "AI-Coach VIP A" },
-          { "id": "aicoach:vip_2", "role": "AI-Coach VIP B" },
-          { "id": "aicoach:vip_3", "role": "AI-Coach VIP C" }
-        ]
-      },
-      "vip_users": [
-        {
-          "id": "vip:james_head",
-          "display_name": "James Head",
-          "type": "public_investor",
-          "subscribed": true,
-          "status": "active_waiting_withdrawal",
-          "sponsor": "coach:tara_davis",
-          "account_level": "VIP",
-          "notes": "Investor guided by Tara; withdrawals orchestrated after production deploy."
-        }
-      ]
+      "head_coaches": ["coach:tara_davis"],
+      "vip_linkages": [["vip:james_head", "coach:tara_davis"]]
     },
     "tokens": {
       "plutoranium": {
@@ -110,23 +81,8 @@
       "policies": ["equal_rights_economy", "anti_abuse", "sovereign_privacy"]
     },
     "vision_pro": {
-      "resolution": "4K",
-      "hdr": "HDR10",
-      "render_targets": ["headset", "founder_console", "public_showcase"],
-      "scenes": [
-        "kingdom_core",
-        "payroll_rings",
-        "trading_banksphere",
-        "ledger_constellation"
-      ],
-      "art_direction": {
-        "whalez_ai_glow": {
-          "founder_view": "full_glow_always",
-          "user_view": "adaptive_by_account_level"
-        },
-        "background": "Whalez world (sovereign orb) with faint Earth in deep parallax"
-      }
+      "resolution": "4k",
+      "scenes": ["kingdom_core", "payroll_rings", "trading_banksphere", "ledger_constellation"]
     }
   }
 }
-
