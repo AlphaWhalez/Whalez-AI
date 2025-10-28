@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0.0",
+  "world": {
+    "name": "Whalez-World",
+    "realm": "Parallel-Sovereign",
+    "founder": {
+      "id": "founder:alpha",
+      "display_name": "Alpha-Whalez",
+      "authority": "total",
+      "privileges": ["approve_all", "override_policies", "broadcast_intent"]
+    },
+    "whalez_ai": {
+      "id": "ai:whalez-core",
+      "role": "bridge-orchestrator",
+      "capabilities": [
+        "intent_refinement",
+        "policy_enforcement",
+        "ledger_audit",
+        "payroll_computation",
+        "ui_telemetry"
+      ],
+      "glow_levels": {
+        "founder_view": "full_glow_always",
+        "user_view": "adaptive_by_account_level"
+      }
+    },
+    "coach_network": {
+      "head_coaches": [
+        { "id": "coach:tara_davis", "role": "Head Coach Finance", "visibility": "primary" }
+      ],
+      "ai_coaches": {
+        "BASIC": [
+          { "id": "aicoach:basic_1", "role": "AI-Coach Basic A" },
+          { "id": "aicoach:basic_2", "role": "AI-Coach Basic B" },
+          { "id": "aicoach:basic_3", "role": "AI-Coach Basic C" }
+        ],
+        "PRO": [
+          { "id": "aicoach:pro_1", "role": "AI-Coach Pro A" },
+          { "id": "aicoach:pro_2", "role": "AI-Coach Pro B" },
+          { "id": "aicoach:pro_3", "role": "AI-Coach Pro C" }
+        ],
+        "VIP": [
+          { "id": "aicoach:vip_1", "role": "AI-Coach VIP A" },
+          { "id": "aicoach:vip_2", "role": "AI-Coach VIP B" },
+          { "id": "aicoach:vip_3", "role": "AI-Coach VIP C" }
+        ]
+      },
+      "vip_users": [
+        {
+          "id": "vip:james_head",
+          "display_name": "James Head",
+          "type": "public_investor",
+          "subscribed": true,
+          "status": "active_waiting_withdrawal",
+          "sponsor": "coach:tara_davis",
+          "account_level": "VIP",
+          "notes": "Investor guided by Tara; withdrawals orchestrated after production deploy."
+        }
+      ]
+    },
+    "tokens": {
+      "plutoranium": {
+        "symbol": "PLTR",
+        "divisible": true,
+        "decimals": 18,
+        "supply_policy": "elastic_governed",
+        "use_cases": ["payroll", "rewards", "governance_fees", "staking"]
+      },
+      "trade_bank": {
+        "symbol": "DATP",
+        "divisible": true,
+        "decimals": 18,
+        "use_cases": ["trading_credit", "bank_liquidity"]
+      }
+    },
+    "deltaalpha_tradepro": {
+      "modules": ["trading_deck", "portfolio_hub", "liquidity_port", "payroll_nexus"],
+      "settlement_chain": "whalezchain"
+    },
+    "payroll_nexus": {
+      "currency": "PLTR",
+      "integrity_rules": [
+        "hybrid_pow_pov",
+        "fair_energy_conversion",
+        "adaptive_scaling",
+        "transparency_log",
+        "tax_harmonizer"
+      ],
+      "frequencies": ["continuous", "per_trade", "daily", "weekly"],
+      "beneficiaries": [
+        "founder",
+        "whalez_ai_core",
+        "head_coaches",
+        "vip_users",
+        "sub_model_ais",
+        "validator_council",
+        "general_users"
+      ]
+    },
+    "whalezchain": {
+      "consensus": "council_validated",
+      "proof_streams": ["proof_of_reward", "proof_of_value", "proof_of_integrity"],
+      "audit_log": "data/reward_proofs.jsonl"
+    },
+    "governance": {
+      "validator_council": {
+        "composition": ["gov_nodes", "selected_submodel_ai"],
+        "payout": "weekly"
+      },
+      "policies": ["equal_rights_economy", "anti_abuse", "sovereign_privacy"]
+    },
+    "vision_pro": {
+      "resolution": "4K",
+      "hdr": "HDR10",
+      "render_targets": ["headset", "founder_console", "public_showcase"],
+      "scenes": [
+        "kingdom_core",
+        "payroll_rings",
+        "trading_banksphere",
+        "ledger_constellation"
+      ],
+      "art_direction": {
+        "whalez_ai_glow": {
+          "founder_view": "full_glow_always",
+          "user_view": "adaptive_by_account_level"
+        },
+        "background": "Whalez world (sovereign orb) with faint Earth in deep parallax"
+      }
+    }
+  }
+}
+

@@ -2,17 +2,16 @@
   "name": "whalez-ai-mobile",
   "version": "1.0.0",
   "private": true,
-  "main": "index.js",
+  "main": "App.js",
   "scripts": {
-    "start": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios"
+    "start": "npx expo start --tunnel"
   },
   "dependencies": {
+    "axios": "^1.7.7",
     "expo": "^51.0.0",
-    "react": "^18.2.0",
-    "react-native": "^0.74.0",
-    "axios": "^1.6.8",
-    "react-native-chart-kit": "^6.12.0"
+    "expo-status-bar": "~1.12.0",
+    "react": "18.2.0",
+    "react-native": "0.74.2"
   }
 }
+

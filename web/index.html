@@ -1,30 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Whalez-AI Sovereign Stack</title>
-    <link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Whalez-AI Web</title>
   </head>
   <body>
-    <main>
-      <h1>Whalez-AI Sovereign Stack</h1>
-      <p>
-        This is a lightweight scaffold that demonstrates the deterministic
-        identity and logging pipeline of the Whalez sovereign stack.
-      </p>
-      <section id="status">
-        <h2>Status</h2>
-        <button id="refresh">Refresh Health</button>
-        <pre id="health-output">Loading...</pre>
-      </section>
-      <section id="affirm">
-        <h2>Affirm a Message</h2>
-        <textarea id="affirm-message" rows="4" cols="40" placeholder="Type your affirmation"></textarea>
-        <button id="affirm-submit">Submit</button>
-        <pre id="affirm-output"></pre>
-      </section>
-    </main>
-    <script src="main.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
+
