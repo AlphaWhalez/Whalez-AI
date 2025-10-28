@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "tasks": [
+    {
+      "id": "stage2_sync_schema_registry",
+      "title": "Sync World Schema + Registry",
+      "actions": [
+        {"op": "ensure_file", "path": "config/world.schema.json"},
+        {"op": "ensure_file", "path": "config/ai_coach_registry.json"},
+        {"op": "ensure_file", "path": "config/app.settings.json"}
+      ]
+    },
+    {
+      "id": "stage2_restore_legacy_core",
+      "title": "Restore core stubs for legacy imports",
+      "actions": [
+        {"op": "ensure_file", "path": "core/__init__.py"},
+        {"op": "ensure_file", "path": "core/affirmation_core.py"},
+        {"op": "ensure_file", "path": "core/self_domain.py"}
+      ]
+    },
+    {
+      "id": "stage2_harden_api",
+      "title": "Update Flask gateway and agents",
+      "actions": [
+        {"op": "ensure_file", "path": "api/gateway.py"},
+        {"op": "ensure_file", "path": "src/agents/__init__.py"},
+        {"op": "ensure_file", "path": "src/agents/interface_agent.py"},
+        {"op": "ensure_file", "path": "src/system.py"}
+      ]
+    },
+    {
+      "id": "stage2_windows_ops",
+      "title": "Windows scripts + proxy",
+      "actions": [
+        {"op": "ensure_file", "path": "scripts/windows/print_ip.bat"},
+        {"op": "ensure_file", "path": "scripts/windows/start_backend.bat"},
+        {"op": "ensure_file", "path": "scripts/windows/start_mobile.bat"},
+        {"op": "ensure_file", "path": "scripts/windows/Caddyfile"},
+        {"op": "ensure_file", "path": "scripts/windows/start_proxy.bat"}
+      ]
+    },
+    {
+      "id": "stage2_git_commit",
+      "title": "Commit Stage 2",
+      "actions": [
+        {"op": "git_add_all"},
+        {"op": "git_commit", "message": "feat(stage2): registry + legacy-safe core, hardened API, Windows proxy"},
+        {"op": "git_push", "branch": "main"}
+      ]
+    }
+  ]
+}

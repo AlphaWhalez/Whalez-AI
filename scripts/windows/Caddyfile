@@ -1,0 +1,6 @@
+:80 {
+  reverse_proxy 127.0.0.1:5050
+  log {
+    output file logs/caddy.access.log
+  }
+}

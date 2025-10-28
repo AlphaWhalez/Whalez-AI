@@ -1,0 +1,27 @@
+{
+  "head_coaches": [
+    {
+      "id": "coach:tara_davis",
+      "display_name": "Tara Davis",
+      "role": "Head Coach - Finance",
+      "authority": "tier_1",
+      "supervises": ["vip:james_head"]
+    }
+  ],
+  "ai_coaches": [
+    { "tier": "Silver", "tasks": ["user_guidance", "portfolio_tips"] },
+    { "tier": "Gold", "tasks": ["strategy_support", "whalezchain_sync"] },
+    { "tier": "Diamond", "tasks": ["executive_oversight", "trade_validation"] }
+  ],
+  "vip_users": [
+    {
+      "id": "vip:james_head",
+      "display_name": "James Head",
+      "role": "Investor",
+      "status": "active",
+      "subscription": "VIP",
+      "mentor": "coach:tara_davis",
+      "notes": "Investor trading under Tara’s guidance; VIP subscriber."
+    }
+  ]
+}

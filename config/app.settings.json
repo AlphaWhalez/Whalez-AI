@@ -1,6 +1,17 @@
 {
-  "server": { "bind_host": "0.0.0.0", "port": 5050 },
-  "logging": { "level": "INFO", "file": "logs/gateway.log" },
-  "features": { "enable_payroll": true, "enable_agents_mock": true }
+  "server": {
+    "bind_host": "0.0.0.0",
+    "port": 5050
+  },
+  "external_url": "http://localhost:5050",
+  "logging": {
+    "level": "INFO",
+    "file": "logs/gateway.log",
+    "json": true
+  },
+  "features": {
+    "enable_payroll": true,
+    "enable_agents_mock": true,
+    "enable_registry": true
+  }
 }
-
