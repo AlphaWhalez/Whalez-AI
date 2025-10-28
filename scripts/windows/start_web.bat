@@ -1,10 +1,13 @@
 @echo off
 setlocal
 cd /d "%~dp0..\..\web"
+echo [+] Working dir: %CD%
+
 if not exist node_modules (
   echo [+] Installing web deps...
-  npm install
+  call npm install
 )
-echo [+] Starting web dev server on http://127.0.0.1:5173 ...
-npm run dev
 
+set VITE_BACKEND=http://127.0.0.1:5050
+echo [+] Starting web dashboard on http://127.0.0.1:5173 ...
+call npm run dev
