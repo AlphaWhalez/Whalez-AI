@@ -21,7 +21,7 @@ jobs:
       - name: Node build (web)
         uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - run: cd web && npm ci && npm run build
+      - run: cd web && npm install && npm run build
       - name: Upload web build
         uses: actions/upload-artifact@v4
         with:
