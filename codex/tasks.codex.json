@@ -215,5 +215,85 @@
     "doc_blueprint": "<<<DOC_BLUEPRINT_MD>>>",
     "doc_architecture": "<<<DOC_ARCH_MD>>>",
     "doc_runbook": "<<<DOC_RUNBOOK_MD>>>"
-  }
+  },
+  "tasks": [
+    {
+      "id": "stage-4-production",
+      "title": "Stage 4 \u2014 Production & Self-Healing Services",
+      "intent": "Enable production WSGI runners, Windows service, watchdog, telemetry, secret policy, and CI artifact build.",
+      "changes": [
+        {
+          "path": ".env.example",
+          "action": "append",
+          "content": "SECRET_KEY=change_me_in_real_.env\nLOG_LEVEL=INFO\nTLS_CERT_PATH=\nTLS_KEY_PATH=\nSERVICE_NAME=WhalezAIGateway\nSERVICE_PORT=5050\nHEALTHCHECK_INTERVAL_SEC=20\nHEALTHCHECK_RESTART_THRESHOLD=3\n"
+        },
+        {
+          "path": "api/gateway.py",
+          "action": "write",
+          "content_from": "INLINE:api_gateway_stage4"
+        },
+        {
+          "path": "scripts/windows/start_backend_service.bat",
+          "action": "write",
+          "content_from": "INLINE:start_backend_service_bat"
+        },
+        {
+          "path": "scripts/linux/start_backend_gunicorn.sh",
+          "action": "write",
+          "content_from": "INLINE:start_backend_gunicorn_sh"
+        },
+        {
+          "path": "scripts/windows/install_service.ps1",
+          "action": "write",
+          "content_from": "INLINE:install_service_ps1"
+        },
+        {
+          "path": "scripts/windows/uninstall_service.ps1",
+          "action": "write",
+          "content_from": "INLINE:uninstall_service_ps1"
+        },
+        {
+          "path": "scripts/windows/watchdog.ps1",
+          "action": "write",
+          "content_from": "INLINE:watchdog_ps1"
+        },
+        {
+          "path": ".github/workflows/ci.yml",
+          "action": "write",
+          "content_from": "INLINE:ci_yml_stage4"
+        },
+        {
+          "path": "docs/RUNBOOK_PROD.md",
+          "action": "write",
+          "content_from": "INLINE:runbook_prod_md"
+        },
+        {
+          "path": "web/src/api.js",
+          "action": "ensure",
+          "content_from": "INLINE:web_api_js"
+        },
+        {
+          "path": "web/src/components/HealthCard.jsx",
+          "action": "ensure",
+          "content_from": "INLINE:healthcard_jsx"
+        }
+      ],
+      "commit": {
+        "message": "feat(prod): Stage 4 \u2014 WSGI service, Windows scheduled service, watchdog, telemetry, CI artifacts",
+        "branch": "main"
+      },
+      "inlines": {
+        "api_gateway_stage4": "<<PASTE api/gateway.py FROM SECTION B>>",
+        "start_backend_service_bat": "<<PASTE scripts/windows/start_backend_service.bat FROM C>>",
+        "start_backend_gunicorn_sh": "<<PASTE scripts/linux/start_backend_gunicorn.sh FROM C>>",
+        "install_service_ps1": "<<PASTE scripts/windows/install_service.ps1 FROM D>>",
+        "uninstall_service_ps1": "<<PASTE scripts/windows/uninstall_service.ps1 FROM D>>",
+        "watchdog_ps1": "<<PASTE scripts/windows/watchdog.ps1 FROM E>>",
+        "ci_yml_stage4": "<<PASTE .github/workflows/ci.yml FROM G>>",
+        "runbook_prod_md": "<<PASTE docs/RUNBOOK_PROD.md FROM H>>",
+        "web_api_js": "<<PASTE web/src/api.js FROM F>>",
+        "healthcard_jsx": "<<PASTE web/src/components/HealthCard.jsx FROM F>>"
+      }
+    }
+  ]
 }
