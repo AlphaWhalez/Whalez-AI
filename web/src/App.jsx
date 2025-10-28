@@ -1,32 +1,38 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-const API = import.meta.env.VITE_API_BASE;
+import "./styles.css";
+import { getHealth, getAgents } from "./api";
+import HealthCard from "./components/HealthCard";
+import AgentsTable from "./components/AgentsTable";
+import PayrollSimulator from "./components/PayrollSimulator";
 
 export default function App() {
   const [health, setHealth] = useState(null);
-  const [agents, setAgents] = useState([]);
+  const [agents, setAgents] = useState(null);
 
   useEffect(() => {
-    axios.get(`${API}/api/health`).then(r => setHealth(r.data)).catch(()=>{});
-    axios.get(`${API}/api/agents/status`).then(r => setAgents(r.data.agents||[])).catch(()=>{});
+    let alive = true;
+    const tick = async () => {
+      try {
+        const [h, a] = await Promise.all([getHealth(), getAgents()]);
+        if (!alive) return;
+        setHealth(h);
+        setAgents(a);
+      } catch (e) {
+        console.warn("Backend not reachable", e.message);
+      }
+    };
+    tick();
+    const id = setInterval(tick, 10000);
+    return () => { alive = false; clearInterval(id); };
   }, []);
 
   return (
-    <div style={{fontFamily:"Inter, system-ui", background:"#0b1120", minHeight:"100vh", color:"#fff", padding:"32px"}}>
-      <h2 style={{color:"#22d3ee"}}>🐋 Whalez-AI Web Console</h2>
-      <section style={{marginTop:16}}>
-        <h3 style={{color:"#a5f3fc"}}>Health</h3>
-        <pre style={{background:"#0f172a", padding:16, border:"1px solid #22d3ee", borderRadius:12}}>
-          {JSON.stringify(health, null, 2)}
-        </pre>
-      </section>
-      <section style={{marginTop:16}}>
-        <h3 style={{color:"#a5f3fc"}}>Agents</h3>
-        <pre style={{background:"#0f172a", padding:16, border:"1px solid #22d3ee", borderRadius:12}}>
-          {JSON.stringify(agents, null, 2)}
-        </pre>
-      </section>
+    <div className="wrap">
+      <h1>🐋 Whalez-AI — Ops Dashboard</h1>
+      <HealthCard health={health} />
+      <AgentsTable agents={agents} />
+      <PayrollSimulator />
+      <footer>Backend: /api → http://127.0.0.1:5050 (proxied by Vite)</footer>
     </div>
   );
 }
-
