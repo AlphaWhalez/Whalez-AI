@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./styles.css";
 import { getHealth, getAgents } from "./api";
 import HealthCard from "./components/HealthCard";
 import AgentsTable from "./components/AgentsTable";
 import PayrollSimulator from "./components/PayrollSimulator";
+import ApiStatus from "./components/ApiStatus";
 
 export default function App() {
   const [health, setHealth] = useState(null);
@@ -29,6 +30,9 @@ export default function App() {
   return (
     <div className="wrap">
       <h1>🐋 Whalez-AI — Ops Dashboard</h1>
+      <div className="card">
+        <ApiStatus />
+      </div>
       <HealthCard health={health} />
       <AgentsTable agents={agents} />
       <PayrollSimulator />
