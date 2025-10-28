@@ -1,0 +1,219 @@
+{
+  "version": "1.0",
+  "project": "Whalez-AI",
+  "intent": "Initialize, configure, run, and sync a production-ready Whalez-AI Sovereign Stack with payroll, web, mobile, and repo automation.",
+  "steps": [
+    {
+      "name": "Ensure folders",
+      "shell": [
+        "mkdir config api src src\\utils src\\agents src\\payroll web web\\src app app\\mobile scripts scripts\\windows docs"
+      ]
+    },
+    {
+      "name": "Write environment",
+      "files": [
+        {
+          "path": ".env.example",
+          "action": "write",
+          "contents_ref": "env_example"
+        },
+        {
+          "path": "config\\app.settings.json",
+          "action": "write",
+          "contents_ref": "app_settings"
+        },
+        {
+          "path": "config\\world.schema.json",
+          "action": "write",
+          "contents_ref": "world_schema"
+        }
+      ]
+    },
+    {
+      "name": "Write backend",
+      "files": [
+        {
+          "path": "api\\gateway.py",
+          "action": "write",
+          "contents_ref": "api_gateway"
+        },
+        {
+          "path": "src\\system.py",
+          "action": "write",
+          "contents_ref": "src_system"
+        },
+        {
+          "path": "src\\utils\\hashing.py",
+          "action": "write",
+          "contents_ref": "src_hashing"
+        },
+        {
+          "path": "src\\agents\\ledger_agent.py",
+          "action": "write",
+          "contents_ref": "src_ledger_agent"
+        },
+        {
+          "path": "src\\payroll\\engine.py",
+          "action": "write",
+          "contents_ref": "src_payroll_engine"
+        }
+      ]
+    },
+    {
+      "name": "Write web SPA (Vite + React)",
+      "files": [
+        {
+          "path": "web\\package.json",
+          "action": "write",
+          "contents_ref": "web_package_json"
+        },
+        {
+          "path": "web\\vite.config.js",
+          "action": "write",
+          "contents_ref": "web_vite_config"
+        },
+        {
+          "path": "web\\index.html",
+          "action": "write",
+          "contents_ref": "web_index_html"
+        },
+        {
+          "path": "web\\src\\main.jsx",
+          "action": "write",
+          "contents_ref": "web_main_jsx"
+        },
+        {
+          "path": "web\\src\\App.jsx",
+          "action": "write",
+          "contents_ref": "web_app_jsx"
+        },
+        {
+          "path": "web\\.env.development",
+          "action": "write",
+          "contents_ref": "web_env_dev"
+        }
+      ]
+    },
+    {
+      "name": "Write mobile (Expo)",
+      "files": [
+        {
+          "path": "app\\mobile\\package.json",
+          "action": "write",
+          "contents_ref": "mobile_package_json"
+        },
+        {
+          "path": "app\\mobile\\App.js",
+          "action": "write",
+          "contents_ref": "mobile_app_js"
+        }
+      ]
+    },
+    {
+      "name": "Write scripts",
+      "files": [
+        {
+          "path": "scripts\\windows\\setup_python.bat",
+          "action": "write",
+          "contents_ref": "win_setup_python"
+        },
+        {
+          "path": "scripts\\windows\\start_backend.bat",
+          "action": "write",
+          "contents_ref": "win_start_backend"
+        },
+        {
+          "path": "scripts\\windows\\start_web.bat",
+          "action": "write",
+          "contents_ref": "win_start_web"
+        },
+        {
+          "path": "scripts\\windows\\start_mobile.bat",
+          "action": "write",
+          "contents_ref": "win_start_mobile"
+        }
+      ]
+    },
+    {
+      "name": "Write documentation",
+      "files": [
+        {
+          "path": "README.md",
+          "action": "write",
+          "contents_ref": "readme_root"
+        },
+        {
+          "path": "docs\\BLUEPRINT.md",
+          "action": "write",
+          "contents_ref": "doc_blueprint"
+        },
+        {
+          "path": "docs\\ARCHITECTURE.md",
+          "action": "write",
+          "contents_ref": "doc_architecture"
+        },
+        {
+          "path": "docs\\RUNBOOK_WINDOWS.md",
+          "action": "write",
+          "contents_ref": "doc_runbook"
+        }
+      ]
+    },
+    {
+      "name": "Install Python deps & run backend",
+      "shell": [
+        "scripts\\windows\\setup_python.bat",
+        "scripts\\windows\\start_backend.bat"
+      ]
+    },
+    {
+      "name": "Install web & run dev server",
+      "shell": [
+        "scripts\\windows\\start_web.bat"
+      ]
+    },
+    {
+      "name": "Install mobile & run Expo",
+      "shell": [
+        "scripts\\windows\\start_mobile.bat"
+      ]
+    },
+    {
+      "name": "Git init & push",
+      "shell": [
+        "git init",
+        "git add .",
+        "git commit -m \"feat: Whalez-AI world schema, payroll, API, web SPA, Expo app, scripts, docs\"",
+        "git branch -M main",
+        "git remote add origin https://github.com/AlphaWhalez/Whalez-AI.git",
+        "git push -u origin main"
+      ]
+    }
+  ],
+  "contents": {
+    "env_example": "# Copy to .env and adjust\nFLASK_ENV=production\nBIND_HOST=0.0.0.0\nPORT=5050\nCORS_ALLOW=*\nSECRET_KEY=replace_me\n",
+    "app_settings": "{\n  \\\"server\\\": {\\\"bind_host\\\": \\\"0.0.0.0\\\", \\\"port\\\": 5050},\n  \\\"logging\\\": {\\\"level\\\": \\\"INFO\\\", \\\"file\\\": \\\"logs/gateway.log\\\"},\n  \\\"features\\\": {\\\"enable_payroll\\\": true, \\\"enable_agents_mock\\\": true}\n}\n",
+    "world_schema": "<<<WORLD_SCHEMA_JSON>>>",
+    "api_gateway": "<<<API_GATEWAY_PY>>>",
+    "src_system": "<<<SRC_SYSTEM_PY>>>",
+    "src_hashing": "<<<SRC_HASHING_PY>>>",
+    "src_ledger_agent": "<<<SRC_LEDGER_AGENT_PY>>>",
+    "src_payroll_engine": "<<<SRC_PAYROLL_ENGINE_PY>>>",
+    "web_package_json": "<<<WEB_PACKAGE_JSON>>>",
+    "web_vite_config": "<<<WEB_VITE_CONFIG_JS>>>",
+    "web_index_html": "<<<WEB_INDEX_HTML>>>",
+    "web_main_jsx": "<<<WEB_MAIN_JSX>>>",
+    "web_app_jsx": "<<<WEB_APP_JSX>>>",
+    "web_env_dev": "VITE_API_BASE=http://127.0.0.1:5050\n",
+    "mobile_package_json": "<<<MOBILE_PACKAGE_JSON>>>",
+    "mobile_app_js": "<<<MOBILE_APP_JS>>>",
+    "win_setup_python": "<<<WIN_SETUP_PYTHON_BAT>>>",
+    "win_start_backend": "<<<WIN_START_BACKEND_BAT>>>",
+    "win_start_web": "<<<WIN_START_WEB_BAT>>>",
+    "win_start_mobile": "<<<WIN_START_MOBILE_BAT>>>",
+    "readme_root": "<<<README_MD>>>",
+    "doc_blueprint": "<<<DOC_BLUEPRINT_MD>>>",
+    "doc_architecture": "<<<DOC_ARCH_MD>>>",
+    "doc_runbook": "<<<DOC_RUNBOOK_MD>>>"
+  }
+}
