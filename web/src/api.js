@@ -1,12 +1,7 @@
-import axios from "axios";
-
-const api = axios.create({
-  // In dev, Vite proxy forwards /api → backend:5050
-  baseURL: "/api",
-  timeout: 10000
-});
-
-export const getHealth = () => api.get("/health").then(r => r.data);
-export const getAgents = () => api.get("/agents/status").then(r => r.data);
-export const postPayrollPreview = (payload) => api.post("/payroll/preview", payload).then(r => r.data);
-export default api;
+export const API_BASE = (import.meta.env.VITE_API_BASE || "http://127.0.0.1:5050");
+export const endpoints = {
+  health: `${API_BASE}/api/health`,
+  agents: `${API_BASE}/api/agents/status`,
+  payrollPreview: `${API_BASE}/api/payroll/preview`,
+  version: `${API_BASE}/api/version`,
+};
