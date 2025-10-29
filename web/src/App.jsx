@@ -1,23 +1,34 @@
 import { useEffect, useState } from "react";
 import "./styles.css";
-import { getHealth, getAgents } from "./api";
+import { getHealth, getAgents, getGovernanceSummary, getGovernanceAudit } from "./api";
 import HealthCard from "./components/HealthCard";
 import AgentsTable from "./components/AgentsTable";
 import PayrollSimulator from "./components/PayrollSimulator";
 import ApiStatus from "./components/ApiStatus";
+import DeployCard from "./components/DeployCard";
+import AuditLog from "./components/AuditLog";
 
 export default function App() {
   const [health, setHealth] = useState(null);
   const [agents, setAgents] = useState(null);
+  const [governance, setGovernance] = useState(null);
+  const [audit, setAudit] = useState([]);
 
   useEffect(() => {
     let alive = true;
     const tick = async () => {
       try {
-        const [h, a] = await Promise.all([getHealth(), getAgents()]);
+        const [h, a, gov, ev] = await Promise.all([
+          getHealth(),
+          getAgents(),
+          getGovernanceSummary(),
+          getGovernanceAudit(),
+        ]);
         if (!alive) return;
         setHealth(h);
         setAgents(a);
+        setGovernance(gov.summary || null);
+        setAudit(ev.events || []);
       } catch (e) {
         console.warn("Backend not reachable", e.message);
       }
@@ -35,6 +46,8 @@ export default function App() {
       </div>
       <HealthCard health={health} />
       <AgentsTable agents={agents} />
+      <DeployCard summary={governance} />
+      <AuditLog events={audit} />
       <PayrollSimulator />
       <footer>Backend: /api → http://127.0.0.1:5050 (proxied by Vite)</footer>
     </div>

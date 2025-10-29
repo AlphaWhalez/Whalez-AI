@@ -15,9 +15,27 @@ jobs:
       - name: Install API deps
         run: |
           python -m pip install --upgrade pip wheel
-          pip install flask python-dotenv psutil
+          pip install flask python-dotenv psutil pyyaml
+      - name: Validate governance configs
+        run: |
+          python - <<'PY'
+          import yaml
+          for path in ["config/services.yaml", "config/policies.yaml"]:
+              with open(path, "r", encoding="utf-8") as fh:
+                  yaml.safe_load(fh)
+          print("config-ok")
+          PY
       - name: Smoke test API import
         run: python -c "import importlib; importlib.import_module('api.gateway')"
+      - name: Governance import smoke
+        run: |
+          python - <<'PY'
+          import core.governance.registry
+          import core.governance.policy_engine
+          import core.governance.health
+          import core.controllers.orchestrator
+          print("governance-ok")
+          PY
       - name: Node build (web)
         uses: actions/setup-node@v4
         with: { node-version: '20' }

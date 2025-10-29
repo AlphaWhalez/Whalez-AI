@@ -6,6 +6,8 @@ export const endpoints = {
   agents: `${API_BASE}/api/agents/status`,
   payrollPreview: `${API_BASE}/api/payroll/preview`,
   version: `${API_BASE}/api/version`,
+  governanceSummary: `${API_BASE}/api/governance/summary`,
+  governanceAudit: `${API_BASE}/api/governance/audit`,
 };
 
 export async function getHealth() {
@@ -20,5 +22,15 @@ export async function getAgents() {
 
 export async function postPayrollPreview(payload) {
   const { data } = await axios.post(endpoints.payrollPreview, payload);
+  return data;
+}
+
+export async function getGovernanceSummary() {
+  const { data } = await axios.get(endpoints.governanceSummary);
+  return data;
+}
+
+export async function getGovernanceAudit() {
+  const { data } = await axios.get(endpoints.governanceAudit);
   return data;
 }
