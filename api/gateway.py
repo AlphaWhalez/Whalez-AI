@@ -1,19 +1,24 @@
 
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, FastAPI, HTTPException
 from pydantic import BaseModel
 from core.controllers.orchestrator import Orchestrator
+from core.tls_engine.routes import attach_tls_routes
 
 app = FastAPI(title="Whalez-AI Gateway")
 orc = Orchestrator()
+
+router = APIRouter()
+attach_tls_routes(router)
+app.include_router(router, prefix="/api")
 
 class Service(BaseModel):
     name: str
     port: int
     runtime: str = "local"
 
-@app.get("/health")
+@app.get("/api/health")
 def health():
-    return {"ok": True}
+    return {"ok": True, "status": "online"}
 
 @app.post("/governance/reconcile")
 def governance_reconcile(services: list[Service]):

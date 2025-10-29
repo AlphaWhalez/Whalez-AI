@@ -1,13 +1,11 @@
-# Simple long-running monitor (optional): re-issues near expiry
-import time
-from core.domain_authority.manager import ensure_certs, _load_settings
+from pathlib import Path
 
-def loop(domain: str):
-    settings = _load_settings()
-    while True:
-        ensure_certs(domain, settings)
-        time.sleep(6 * 60 * 60)  # every 6 hours
 
-if __name__ == "__main__":
-    domain = "whalez-ai.local"
-    loop(domain)
+def tls_status(store=".secrets/tls"):
+    store = Path(store)
+    ok = all([
+        (store / "ca.cert.pem").exists(),
+        (store / "server.cert.pem").exists(),
+        (store / "server.key.pem").exists(),
+    ])
+    return {"tls_ok": bool(ok)}

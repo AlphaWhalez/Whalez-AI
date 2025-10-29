@@ -1,10 +1,8 @@
-# Maps HTTPS serving → Flask app instance
-import os
-from flask import Flask, redirect
+from fastapi import APIRouter
+from .monitor import tls_status
 
-def attach_http_redirect(app: Flask, target_https_port: int):
-    @app.route("/", defaults={"path": ""})
-    @app.route("/<path:path>")
-    def _redir(path):
-        host = os.getenv("WHALEZ_DOMAIN_HOST", "127.0.0.1")
-        return redirect(f"https://{host}:{target_https_port}/{path}", code=302)
+
+def attach_tls_routes(router: APIRouter):
+    @router.get("/health/tls")
+    def health_tls():
+        return tls_status()

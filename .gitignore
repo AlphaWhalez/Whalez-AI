@@ -238,3 +238,4 @@ web/assets/
 \
 cap/build/
 
+.secrets/
