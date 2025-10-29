@@ -1,5 +1,30 @@
 
+import asyncio
+
 from core.governance import PolicyEngine, PolicyViolation, AuditLogger, HealthMonitor, ServiceDeployer
+
+try:
+    from core.telemetry.streamer import log_event as _emit
+except Exception:  # pragma: no cover
+    async def _emit(kind, data):  # type: ignore
+        return None
+
+
+def _emit_async(kind: str, data):
+    """Best-effort async emitter that never raises."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            return
+        if not loop.is_running():
+            return
+    try:
+        loop.create_task(_emit(kind, data))
+    except Exception:
+        return
 
 class Orchestrator:
     def __init__(self):
@@ -16,7 +41,16 @@ class Orchestrator:
     def reconcile(self, desired_services):
         results = []
         for svc in desired_services:
-            self.engine.enforce(svc)
-            self.deployer.deploy(svc)
+            intent_name = svc.get("name", "service")
+            _emit_async("intent.enqueue", {"name": intent_name, "meta": svc})
+            _emit_async("intent.start", {"name": intent_name})
+            try:
+                self.engine.enforce(svc)
+                self.deployer.deploy(svc)
+            except Exception as exc:
+                _emit_async("intent.fail", {"name": intent_name, "error": str(exc)})
+                raise
+            else:
+                _emit_async("intent.done", {"name": intent_name, "status": "ok"})
             results.append({"name": svc["name"], "status": "DEPLOYED"})
         return {"results": results, "audit": self.audit.list()}
