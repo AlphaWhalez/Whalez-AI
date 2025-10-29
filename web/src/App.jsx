@@ -1,6 +1,7 @@
 
 import DeployCard from "./components/DeployCard";
 import SecurityStatus from "./components/SecurityStatus";
+import SystemIntegrity from "./components/SystemIntegrity";
 
 export default function App() {
   return (
@@ -9,6 +10,9 @@ export default function App() {
       <div className="grid gap-4 md:grid-cols-2">
         <SecurityStatus />
         <DeployCard />
+        <div className="md:col-span-2">
+          <SystemIntegrity />
+        </div>
       </div>
     </div>
   );

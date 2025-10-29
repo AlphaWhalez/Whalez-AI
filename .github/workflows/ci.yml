@@ -59,3 +59,17 @@ jobs:
           pip install cryptography fastapi
       - name: Preflight TLS
         run: python scripts/ci/preflight_tls.py
+
+  self_heal:
+    name: Self-heal preflight
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install API deps
+        run: pip install fastapi uvicorn pydantic "pyjwt[crypto]" cryptography
+      - name: Run self-heal preflight
+        run: python scripts/ci/preflight_self_heal.py
