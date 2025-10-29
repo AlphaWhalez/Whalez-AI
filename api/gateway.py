@@ -2,6 +2,7 @@
 from fastapi import APIRouter, FastAPI, HTTPException
 from pydantic import BaseModel
 
+from api import recovery as recovery_api
 from api.security import router as security_router
 from core.controllers.orchestrator import Orchestrator
 from core.tls_engine.routes import attach_tls_routes
@@ -13,6 +14,7 @@ router = APIRouter()
 attach_tls_routes(router)
 app.include_router(router, prefix="/api")
 app.include_router(security_router)
+app.include_router(recovery_api.router)
 
 class Service(BaseModel):
     name: str
