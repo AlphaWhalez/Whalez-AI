@@ -1,13 +1,13 @@
-"""Governance primitives exposed by the core package."""
+
 from .policy_engine import PolicyEngine, PolicyViolation
-from .deployer import ServiceDeployer
-from .health import HealthMonitor
 from .audit import AuditLogger
+from .health import HealthMonitor
+from .deployer import ServiceDeployer
 
 __all__ = [
     "PolicyEngine",
     "PolicyViolation",
-    "ServiceDeployer",
-    "HealthMonitor",
     "AuditLogger",
+    "HealthMonitor",
+    "ServiceDeployer",
 ]

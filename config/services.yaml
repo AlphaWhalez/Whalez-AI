@@ -1,0 +1,5 @@
+
+services:
+  - name: demo-api
+    port: 8080
+    runtime: local
