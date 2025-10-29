@@ -32,6 +32,11 @@ jobs:
           PY
       - name: Preflight governance
         run: python scripts/ci/preflight_governance.py
+      - name: Security preflight
+        run: |
+          python -m pip install --upgrade pip
+          pip install cryptography pyjwt
+          python scripts/ci/preflight_security.py
       - name: Node build (web)
         working-directory: web
         run: |

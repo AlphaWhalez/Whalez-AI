@@ -238,4 +238,6 @@ web/assets/
 \
 cap/build/
 
+# Secrets vault (encrypted values live here, keep entirely out of git)
 .secrets/
+.secrets/**
