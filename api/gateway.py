@@ -30,7 +30,7 @@ def health():
     return {"ok": True, "status": "online"}
 
 @app.post("/governance/reconcile")
-def governance_reconcile(services: list[Service]):
+async def governance_reconcile(services: list[Service]):
     try:
         res = orc.reconcile([s.dict() for s in services])
         return res
