@@ -1,0 +1,5 @@
+vault_root: ".secrets"
+kdf:
+  salt: "whalez-ai-default-salt"
+  rounds: 100000
+default_scopes: ["read:secrets"]

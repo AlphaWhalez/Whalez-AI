@@ -1,4 +1,6 @@
+cryptography
 fastapi
-uvicorn
-pyyaml
+pyjwt
 pydantic>=2
+pyyaml
+uvicorn
