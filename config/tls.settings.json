@@ -1,21 +1,21 @@
 {
-  "mode": "WADA-Hybrid",
-  "letsencrypt": {
-    "email": "founder@whalez-ai.world",
-    "staging": true
+  "authority": {
+    "org": "Whalez-AI",
+    "common_name": "Whalez-AI Local CA",
+    "country": "US",
+    "valid_days": 825
   },
-  "selfca": {
-    "organization": "Whalez-Ai Sovereign Stack",
-    "valid_days": 365
-  },
-  "auto_rotate_days": 30,
-  "bind": {
+  "server": {
     "host": "0.0.0.0",
-    "https_port": 4443,
-    "http_redirect_port": 8080
+    "port": 8443,
+    "dns_names": ["localhost", "whalez-ai.local"],
+    "valid_days": 397
   },
-  "paths": {
-    "cert_root": "certs",
-    "log_file": "logs/tls_audit.log"
+  "storage": {
+    "dir": ".secrets/tls",
+    "ca_key": "ca.key.pem",
+    "ca_cert": "ca.cert.pem",
+    "srv_key": "server.key.pem",
+    "srv_cert": "server.cert.pem"
   }
 }

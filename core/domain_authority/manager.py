@@ -1,79 +1,94 @@
-"""
-WADA (Whalez-Ai Domain Authority) Manager
-- Hybrid mode: try Let's Encrypt; if not, fallback to Self-CA
-- Writes certs to certs/live/<domain>/
-"""
-import os, socket, time, json
 from pathlib import Path
-from .signer import issue_server_cert
-from .verify import cert_days_remaining, emit_log
+import json, datetime
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 
-DEFAULT_DOMAIN = os.getenv("WHALEZ_DOMAIN", "whalez-ai.local")
-SETTINGS_PATH = Path("config/tls.settings.json")
 
-def _load_settings():
-    return json.loads(SETTINGS_PATH.read_text(encoding="utf-8"))
+class DomainAuthority:
+    """Self-managed lightweight CA for preview & internal traffic."""
 
-def _domain_resolves(domain: str) -> bool:
-    try:
-        socket.gethostbyname(domain)
-        return True
-    except Exception:
-        return False
+    def __init__(self, cfg_path="config/tls.settings.json"):
+        self.cfg = json.load(open(cfg_path))
+        self.store = Path(self.cfg["storage"]["dir"])
+        self.store.mkdir(parents=True, exist_ok=True)
+        self.ca_key = self.store / self.cfg["storage"]["ca_key"]
+        self.ca_crt = self.store / self.cfg["storage"]["ca_cert"]
 
-def ensure_certs(domain: str, settings: dict):
-    cert_root = Path(settings["paths"]["cert_root"])
-    log_file  = Path(settings["paths"]["log_file"])
-    org       = settings["selfca"]["organization"]
-    valid_days= int(settings["selfca"]["valid_days"])
+    def _new_key(self):
+        return rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
-    live_dir  = cert_root / "live" / domain
-    crt_path  = live_dir / "fullchain.pem"
-    key_path  = live_dir / "privkey.pem"
-    chain_path= live_dir / "chain.pem"
+    def _subject(self, org, cn, country):
+        return x509.Name([
+            x509.NameAttribute(NameOID.COUNTRY_NAME, country),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, org),
+            x509.NameAttribute(NameOID.COMMON_NAME, cn),
+        ])
 
-    # If missing or near expiry, (re)issue via self-CA. (ACME hook can be added here later.)
-    need_issue = (not crt_path.exists() or not key_path.exists())
-    if not need_issue:
-        days = cert_days_remaining(crt_path)
-        if days <= settings["auto_rotate_days"]:
-            need_issue = True
+    def ensure_authority(self):
+        if self.ca_key.exists() and self.ca_crt.exists():
+            return
+        key = self._new_key()
+        subj = self._subject(self.cfg["authority"]["org"],
+                             self.cfg["authority"]["common_name"],
+                             self.cfg["authority"]["country"])
+        now = datetime.datetime.utcnow()
+        cert = (
+            x509.CertificateBuilder()
+            .subject_name(subj).issuer_name(subj)
+            .public_key(key.public_key())
+            .serial_number(x509.random_serial_number())
+            .not_valid_before(now - datetime.timedelta(days=1))
+            .not_valid_after(now + datetime.timedelta(days=self.cfg["authority"]["valid_days"]))
+            .add_extension(x509.BasicConstraints(ca=True, path_length=1), critical=True)
+            .sign(key, hashes.SHA256())
+        )
+        self.ca_key.write_bytes(
+            key.private_bytes(serialization.Encoding.PEM,
+                              serialization.PrivateFormat.TraditionalOpenSSL,
+                              serialization.NoEncryption())
+        )
+        self.ca_crt.write_bytes(cert.public_bytes(serialization.Encoding.PEM))
 
-    if need_issue:
-        crt_path, key_path, chain_path = issue_server_cert(domain, org, valid_days, cert_root)
-        emit_log(Path(log_file), {
-            "t": int(time.time()),
-            "event": "cert_issued",
-            "domain": domain,
-            "mode": "self-ca",
-            "paths": {"crt": str(crt_path), "key": str(key_path), "chain": str(chain_path)}
-        })
+    def issue_server_cert(self):
+        """Issue/rotate a server cert signed by our CA."""
+        self.ensure_authority()
+        srv_key = self.store / self.cfg["storage"]["srv_key"]
+        srv_crt = self.store / self.cfg["storage"]["srv_cert"]
 
-    return crt_path, key_path
+        key = self._new_key()
+        ca_key = serialization.load_pem_private_key(self.ca_key.read_bytes(), password=None)
+        ca_crt = x509.load_pem_x509_certificate(self.ca_crt.read_bytes())
 
-def main():
-    settings = _load_settings()
-    mode = settings.get("mode", "WADA-Hybrid")
-    domain = os.getenv("WHALEZ_DOMAIN", DEFAULT_DOMAIN)
+        now = datetime.datetime.utcnow()
+        names = [x509.DNSName(n) for n in self.cfg["server"]["dns_names"]]
+        subj = self._subject(self.cfg["authority"]["org"],
+                             self.cfg["server"]["dns_names"][0],
+                             self.cfg["authority"]["country"])
+        csr = (
+            x509.CertificateSigningRequestBuilder()
+            .subject_name(subj)
+            .add_extension(x509.SubjectAlternativeName(names), critical=False)
+            .sign(key, hashes.SHA256())
+        )
+        cert = (
+            x509.CertificateBuilder()
+            .subject_name(csr.subject).issuer_name(ca_crt.subject)
+            .public_key(csr.public_key())
+            .serial_number(x509.random_serial_number())
+            .not_valid_before(now - datetime.timedelta(days=1))
+            .not_valid_after(now + datetime.timedelta(days=self.cfg["server"]["valid_days"]))
+            .add_extension(x509.SubjectAlternativeName(names), critical=False)
+            .add_extension(x509.BasicConstraints(ca=False, path_length=None), critical=True)
+            .sign(private_key=ca_key, algorithm=hashes.SHA256())
+        )
 
-    # In Hybrid mode we *could* try ACME first if domain resolves publicly.
-    # For now, we always ensure self-CA exists; ACME can be plugged here later.
-    if mode in ("WADA-Hybrid", "WADA-Self"):
-        if mode == "WADA-Hybrid" and _domain_resolves(domain):
-            # TODO: place ACME issuance here; if fails → fallback self-CA
-            pass
+        srv_key.write_bytes(
+            key.private_bytes(serialization.Encoding.PEM,
+                              serialization.PrivateFormat.TraditionalOpenSSL,
+                              serialization.NoEncryption())
+        )
+        srv_crt.write_bytes(cert.public_bytes(serialization.Encoding.PEM))
 
-        crt_path, key_path = ensure_certs(domain, settings)
-        return {
-            "domain": domain,
-            "cert": str(crt_path),
-            "key": str(key_path),
-            "host": settings["bind"]["host"],
-            "https_port": settings["bind"]["https_port"],
-            "http_redirect_port": settings["bind"]["http_redirect_port"],
-        }
-
-    raise SystemExit("Unsupported WADA mode")
-
-if __name__ == "__main__":
-    print(json.dumps(main(), indent=2))
+        return str(srv_key), str(srv_crt), str(self.ca_crt)

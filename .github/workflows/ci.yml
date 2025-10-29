@@ -39,3 +39,18 @@ jobs:
           npm run build
       - name: Upload web dist (summary)
         run: ls -la web/dist || true
+
+  tls-preflight:
+    name: TLS preflight
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install crypto deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install cryptography fastapi
+      - name: Preflight TLS
+        run: python scripts/ci/preflight_tls.py
