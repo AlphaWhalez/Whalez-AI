@@ -1,0 +1,28 @@
+version: 1
+services:
+  gateway:
+    type: process
+    command: "python -m api.gateway"
+    env:
+      TLS_MODE: "on"
+      PORT: 4443
+    ports: [4443]
+    health:
+      probe: { type: https, path: "/api/health", interval: 5s, timeout: 2s }
+      slo:   { success_rate: ">=99%", latency_p95_ms: "<=250" }
+    rollout:
+      strategy: blue-green
+      canary_percent: 10
+      pause_seconds: 60
+
+  web:
+    type: process
+    command: "npx serve -s web/dist -l 5173"
+    ports: [5173]
+    health:
+      probe: { type: http, path: "/", interval: 10s }
+      slo:   { success_rate: ">=99%" }
+    rollout:
+      strategy: canary
+      canary_percent: 20
+      pause_seconds: 45

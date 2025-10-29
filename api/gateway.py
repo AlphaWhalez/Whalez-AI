@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 import os, json, random, time, traceback, logging
 from datetime import datetime
+from pathlib import Path
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 
 from src.agents.ledger_agent import LedgerAgent
 from src.system import system_status_snapshot, verify_system_integrity
 from src.payroll.engine import preview_allocation, payout
+from core.governance.audit import AuditLogger
 
 # env
 load_dotenv()
@@ -111,6 +113,7 @@ def payroll_payout():
 # ---------- telemetry ----------
 TELEMETRY = "data/telemetry.jsonl"
 os.makedirs("data", exist_ok=True)
+GOV_SUMMARY = Path("logs/governance/summary.json")
 
 @app.route("/api/telemetry/heartbeat", methods=["POST"])
 def telemetry_heartbeat():
@@ -119,6 +122,22 @@ def telemetry_heartbeat():
     with open(TELEMETRY, "a", encoding="utf-8") as f:
         f.write(json.dumps(payload) + "\n")
     return jsonify({"ok": True})
+
+
+@app.route("/api/governance/summary")
+def governance_summary():
+    if GOV_SUMMARY.exists():
+        summary = json.loads(GOV_SUMMARY.read_text(encoding="utf-8"))
+    else:
+        summary = {}
+    return jsonify({"summary": summary})
+
+
+@app.route("/api/governance/audit")
+def governance_audit():
+    logger = AuditLogger()
+    events = logger.as_dicts(limit=50)
+    return jsonify({"events": events})
 
 @app.errorhandler(Exception)
 def on_error(e):

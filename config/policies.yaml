@@ -1,0 +1,11 @@
+allow:
+  adapters: ["local_process"]
+limits:
+  max_concurrent_rollouts: 1
+  max_restarts_per_hour: 3
+  cpu_quota_hint: "soft"
+approvals:
+  require_manual_for_major: true
+security:
+  tls_required: true
+  signed_artifacts_only: false
