@@ -8,10 +8,13 @@ from typing import Optional
 from .crypto import fernet_from_env
 
 
+_DEFAULT_ROOT = ".secrets"
+
+
 class Vault:
     """Simple encrypted vault backed by Fernet-encrypted files."""
 
-    def __init__(self, root: str = ".secrets") -> None:
+    def __init__(self, root: str = _DEFAULT_ROOT) -> None:
         self.root = Path(root)
         self.root.mkdir(parents=True, exist_ok=True)
         self._fernet = fernet_from_env()
@@ -34,4 +37,24 @@ class Vault:
         return [p.stem for p in self.root.glob("*.secret")]
 
 
-__all__ = ["Vault"]
+
+_GLOBAL_VAULT: Vault | None = None
+
+
+def _get_global_vault() -> Vault:
+    global _GLOBAL_VAULT
+    if _GLOBAL_VAULT is None:
+        _GLOBAL_VAULT = Vault(_DEFAULT_ROOT)
+    return _GLOBAL_VAULT
+
+
+def get_secret(key: str, default: Optional[str] = None) -> Optional[str]:
+    """Convenience helper for retrieving secrets with a default."""
+
+    value = _get_global_vault().get(key)
+    if value is None:
+        return default
+    return value
+
+
+__all__ = ["Vault", "get_secret"]
