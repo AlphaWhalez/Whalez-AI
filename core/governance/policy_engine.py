@@ -1,39 +1,29 @@
-"""Policy engine utilities for Whalez-AI governance."""
-from __future__ import annotations
 
-from typing import Callable, Iterable, List, Optional
-
+from typing import Callable, Dict, Any
 
 class PolicyViolation(Exception):
-    """Raised when an action violates a governance policy."""
-
+    """Raised when a policy check fails."""
 
 class PolicyEngine:
-    """Simple policy engine that executes registered policy callables."""
+    def __init__(self, audit=None):
+        self._policies: Dict[str, Callable[[Dict[str,Any]], None]] = {}
+        self.audit = audit
 
-    def __init__(self, policies: Optional[Iterable[Callable[[dict], bool]]] = None) -> None:
-        self._policies: List[Callable[[dict], bool]] = []
-        if policies:
-            for policy in policies:
-                self.register_policy(policy)
+    def policy(self, name: str):
+        def _decorator(fn: Callable[[Dict[str,Any]], None]):
+            self._policies[name] = fn
+            if self.audit:
+                self.audit.log("policy.registered", name=name)
+            return fn
+        return _decorator
 
-    def register_policy(self, policy: Callable[[dict], bool]) -> None:
-        """Register a policy callable to run during enforcement."""
-
-        if not callable(policy):
-            raise TypeError("policy must be callable")
-        self._policies.append(policy)
-
-    def enforce(self, context: Optional[dict] = None) -> bool:
-        """Run all policies against the provided context."""
-
-        context = context or {}
-        for policy in self._policies:
-            result = policy(context)
-            if not result:
-                policy_name = getattr(policy, "__name__", repr(policy))
-                raise PolicyViolation(f"Policy '{policy_name}' failed for context {context!r}")
-        return True
-
-
-__all__ = ["PolicyEngine", "PolicyViolation"]
+    def enforce(self, service: Dict[str,Any]):
+        for name, fn in self._policies.items():
+            try:
+                fn(service)
+            except PolicyViolation as e:
+                if self.audit:
+                    self.audit.log("policy.violation", policy=name, reason=str(e))
+                raise
+        if self.audit:
+            self.audit.log("policy.pass", policies=list(self._policies))
