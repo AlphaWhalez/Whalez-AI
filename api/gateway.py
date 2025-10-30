@@ -10,6 +10,7 @@ from core.controllers.orchestrator import (
 )
 from core.tls_engine.routes import attach_tls_routes
 from core.voice.bridge import router as voice_router
+from api.routes import intent as intent_routes
 from fastapi.middleware.cors import CORSMiddleware
 
 gateway = FastAPI(title="Whalez-AI Unified Gateway", version="2.0")
@@ -29,6 +30,7 @@ gateway.add_middleware(
 gateway.include_router(internal_api, prefix="/api")
 gateway.include_router(security_router)
 gateway.include_router(voice_router)
+gateway.include_router(intent_routes.router)
 gateway.include_router(orchestrator_router)
 mount_admin_console(gateway)
 
