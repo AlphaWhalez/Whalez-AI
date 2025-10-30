@@ -7,7 +7,20 @@ import hashlib
 import os
 from dataclasses import dataclass
 
-from cryptography.fernet import Fernet
+try:  # pragma: no cover - optional dependency for lightweight test envs
+    from cryptography.fernet import Fernet
+except Exception:  # pragma: no cover
+    class Fernet:  # type: ignore[no-redef]
+        """Minimal stub used when cryptography is unavailable."""
+
+        def __init__(self, key: bytes) -> None:  # noqa: D401
+            self.key = key
+
+        def encrypt(self, data: bytes) -> bytes:
+            raise RuntimeError("cryptography.fernet not installed")
+
+        def decrypt(self, token: bytes, ttl: int | None = None) -> bytes:  # noqa: ARG002
+            raise RuntimeError("cryptography.fernet not installed")
 
 
 @dataclass(slots=True)

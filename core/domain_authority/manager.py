@@ -1,15 +1,23 @@
 from pathlib import Path
 import json, datetime
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+
+try:  # pragma: no cover - optional dependency for lightweight environments
+    from cryptography import x509
+    from cryptography.x509.oid import NameOID
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    _HAS_CRYPTO = True
+except Exception:  # pragma: no cover
+    x509 = NameOID = hashes = serialization = rsa = None  # type: ignore
+    _HAS_CRYPTO = False
 
 
 class DomainAuthority:
     """Self-managed lightweight CA for preview & internal traffic."""
 
     def __init__(self, cfg_path="config/tls.settings.json"):
+        if not _HAS_CRYPTO:
+            raise RuntimeError("cryptography package is required for TLS operations")
         self.cfg = json.load(open(cfg_path))
         self.store = Path(self.cfg["storage"]["dir"])
         self.store.mkdir(parents=True, exist_ok=True)

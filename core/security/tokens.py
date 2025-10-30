@@ -6,7 +6,14 @@ import os
 import time
 from typing import Any, Dict, Sequence
 
-import jwt
+try:  # pragma: no cover - optional dependency for light test envs
+    import jwt
+except Exception:  # pragma: no cover
+    class _MissingJWTModule:
+        def __getattr__(self, item):
+            raise RuntimeError("PyJWT is required for token operations")
+
+    jwt = _MissingJWTModule()  # type: ignore[assignment]
 
 
 class TokenService:

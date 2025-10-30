@@ -4,6 +4,11 @@ import asyncio
 from core.governance import PolicyEngine, PolicyViolation, AuditLogger, HealthMonitor, ServiceDeployer
 
 try:
+    from core.intent import get_engine
+except Exception:  # pragma: no cover
+    get_engine = None  # type: ignore
+
+try:
     from core.telemetry.streamer import log_event as _emit
 except Exception:  # pragma: no cover
     async def _emit(kind, data):  # type: ignore
@@ -54,3 +59,13 @@ class Orchestrator:
                 _emit_async("intent.done", {"name": intent_name, "status": "ok"})
             results.append({"name": svc["name"], "status": "DEPLOYED"})
         return {"results": results, "audit": self.audit.list()}
+
+
+async def request_reconcile(target: str = "dummy-service") -> dict:
+    """Enqueue a reconcile intent via the global engine and return metadata."""
+
+    if not get_engine:
+        return {"ok": False, "error": "intent engine unavailable"}
+    engine = get_engine()
+    intent = await engine.reconcile(target=target)
+    return {"ok": True, "intent_id": intent.id, "name": intent.name, "target": target}
