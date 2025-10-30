@@ -51,6 +51,7 @@ def _schedule(coro: Awaitable[Any]) -> None:
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
+        asyncio.run(coro)
         return
     loop.create_task(coro)
 
@@ -82,6 +83,11 @@ class TelemetryStreamer:
 
     def __init__(self) -> None:
         self._listeners: list[Callable[[str, Any], Any]] = []
+
+    @staticmethod
+    def get() -> "TelemetryStreamer":
+        """Return the shared default streamer instance."""
+        return _default_streamer
 
     def on_emit(self, func: Callable[[str, Any], Any]) -> Callable[[str, Any], Any]:
         self._listeners.append(func)
