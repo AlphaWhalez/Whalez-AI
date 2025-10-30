@@ -8,7 +8,7 @@ from core.telemetry.streamer import TelemetryStreamer
 
 router = APIRouter(prefix="/intent", tags=["intent"])
 
-streamer = TelemetryStreamer()
+streamer = TelemetryStreamer.get()
 ai = IntentRouter(streamer)
 ai.register(IntentType.DNS_MINT, lambda i: dns_mint(i, streamer))
 ai.register(IntentType.CONSOLE, lambda i: console_cmd(i, streamer))

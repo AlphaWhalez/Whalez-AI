@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DRY_RUN: "1"
+      INTENT_LEDGER_PATH: "data/ci_ledger.sqlite3"
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python
