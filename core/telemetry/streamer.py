@@ -78,14 +78,27 @@ async def stream_events(websocket: WebSocket) -> None:
     clients.add(websocket)
     _ensure_lock(websocket)
     try:
+        loop = asyncio.get_event_loop()
+        await _send(
+            websocket,
+            json.dumps(
+                {
+                    "event": "connected",
+                    "signal": "CONSOLE_CONNECTED",
+                    "timestamp": loop.time(),
+                }
+            ),
+        )
         while True:
             event = {
                 "event": "pulse",
                 "signal": random.choice(["INTENT_START", "INTENT_DONE", "DNS_MINTED"]),
-                "timestamp": asyncio.get_event_loop().time(),
+                "timestamp": loop.time(),
             }
-            await _send(websocket, json.dumps(event))
+            await _broadcast(json.dumps(event))
             await asyncio.sleep(2)
+    except asyncio.CancelledError:
+        raise
     except Exception:
         pass
     finally:

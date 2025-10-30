@@ -148,6 +148,12 @@
     <script>
       const scheme = window.location.protocol === "https:" ? "wss" : "ws";
       let ws = new WebSocket(scheme + "://" + window.location.host + "/ws/signal");
+      ws.onopen = () => {
+        const box = document.getElementById("terminal");
+        const notice = document.createElement("div");
+        notice.textContent = "[CONNECTED] Unified gateway link established";
+        box.appendChild(notice);
+      };
       ws.onmessage = (e) => {
         const data = JSON.parse(e.data);
         const box = document.getElementById("terminal");
@@ -165,6 +171,12 @@
         line.textContent = `[${label}] ${timestamp}${details ? " • " + details : ""}`;
         box.appendChild(line);
         box.scrollTop = box.scrollHeight;
+      };
+      ws.onerror = () => {
+        const box = document.getElementById("terminal");
+        const notice = document.createElement("div");
+        notice.textContent = "[ERROR] Signal stream encountered an issue";
+        box.appendChild(notice);
       };
       ws.onclose = () => {
         const box = document.getElementById("terminal");
