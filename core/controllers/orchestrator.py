@@ -1,7 +1,17 @@
 
 import asyncio
 
-from core.governance import PolicyEngine, PolicyViolation, AuditLogger, HealthMonitor, ServiceDeployer
+from fastapi import APIRouter, WebSocket
+
+from core.governance import (
+    PolicyEngine,
+    PolicyViolation,
+    AuditLogger,
+    HealthMonitor,
+    ServiceDeployer,
+)
+from core.telemetry.streamer import stream_events
+from core.webui.console import app as admin_console
 
 try:
     from core.telemetry.streamer import log_event as _emit
@@ -54,3 +64,25 @@ class Orchestrator:
                 _emit_async("intent.done", {"name": intent_name, "status": "ok"})
             results.append({"name": svc["name"], "status": "DEPLOYED"})
         return {"results": results, "audit": self.audit.list()}
+
+
+router = APIRouter()
+
+
+@router.get("/orchestrator/ping")
+async def ping():
+    return {"status": "ok", "source": "Whalez-AI Orchestrator"}
+
+
+@router.websocket("/ws/signal")
+async def websocket_endpoint(websocket: WebSocket):
+    await stream_events(websocket)
+
+
+@router.websocket("/ws/stream")
+async def legacy_stream(websocket: WebSocket):
+    await stream_events(websocket)
+
+
+def mount_admin_console(app):
+    app.mount("/console", admin_console)

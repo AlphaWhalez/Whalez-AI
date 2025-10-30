@@ -1,69 +1,93 @@
+"""Unified event streamer for the Whalez-AI consoles."""
+
 from __future__ import annotations
+
 import asyncio
-from typing import Set
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from datetime import datetime
+import json
+import random
+from typing import Dict
 
-router = APIRouter()
-_clients: Set[WebSocket] = set()
-_queue: "asyncio.Queue[str]" = asyncio.Queue()
+from fastapi import WebSocket
+
+clients: set[WebSocket] = set()
+_client_locks: Dict[WebSocket, asyncio.Lock] = {}
+_broadcast_gate = asyncio.Lock()
 
 
-async def _fanout():
-    while True:
-        msg = await _queue.get()
-        dead = []
-        for ws in list(_clients):
+def _ensure_lock(websocket: WebSocket) -> asyncio.Lock:
+    lock = _client_locks.get(websocket)
+    if lock is None:
+        lock = asyncio.Lock()
+        _client_locks[websocket] = lock
+    return lock
+
+
+async def _send(websocket: WebSocket, payload: str) -> None:
+    lock = _ensure_lock(websocket)
+    async with lock:
+        await websocket.send_text(payload)
+
+
+async def _broadcast(payload: str) -> None:
+    async with _broadcast_gate:
+        dead: list[WebSocket] = []
+        for ws in list(clients):
             try:
-                await ws.send_text(msg)
+                await _send(ws, payload)
             except Exception:
                 dead.append(ws)
         for ws in dead:
-            try:
-                _clients.remove(ws)
-            except KeyError:
-                pass
+            clients.discard(ws)
+            _client_locks.pop(ws, None)
 
 
-# single background task handle
-_fanout_task: asyncio.Task | None = None
+def _normalize_signal(kind: str) -> str:
+    token = kind.replace(".", "_")
+    return token.upper()
 
 
-def _ensure_fanout():
-    global _fanout_task
-    loop = asyncio.get_event_loop()
-    if _fanout_task is None or _fanout_task.done():
-        _fanout_task = loop.create_task(_fanout())
-
-
-async def log_event(kind: str, data: dict | str):
-    """
-    Safe, structured log for UI. Never raises.
-    """
+async def log_event(kind: str, data: dict | str) -> None:
+    """Fan out structured orchestrator events to connected consoles."""
     try:
-        _ensure_fanout()
-        if not isinstance(data, str):
-            import json
-            payload = json.dumps({"t": datetime.utcnow().isoformat() + "Z", "k": kind, "d": data})
-        else:
-            payload = data
-        await _queue.put(payload)
+        loop = asyncio.get_event_loop()
+        timestamp = loop.time()
+        event = {
+            "event": kind,
+            "signal": _normalize_signal(kind),
+            "data": data,
+            "timestamp": timestamp,
+        }
+        try:
+            payload = json.dumps(event)
+        except TypeError:
+            event = {
+                "event": kind,
+                "signal": _normalize_signal(kind),
+                "data": repr(data),
+                "timestamp": timestamp,
+            }
+            payload = json.dumps(event)
+        await _broadcast(payload)
     except Exception:
-        # swallow: logging must never break business logic
-        pass
+        # Streaming must never interfere with business logic
+        return None
 
 
-@router.websocket("/ws/stream")
-async def ws_stream(ws: WebSocket):
-    await ws.accept()
-    _ensure_fanout()
-    _clients.add(ws)
+async def stream_events(websocket: WebSocket) -> None:
+    await websocket.accept()
+    clients.add(websocket)
+    _ensure_lock(websocket)
     try:
         while True:
-            # keepalive (client can send pings if it wants)
-            await ws.receive_text()
-    except WebSocketDisconnect:
+            event = {
+                "event": "pulse",
+                "signal": random.choice(["INTENT_START", "INTENT_DONE", "DNS_MINTED"]),
+                "timestamp": asyncio.get_event_loop().time(),
+            }
+            await _send(websocket, json.dumps(event))
+            await asyncio.sleep(2)
+    except Exception:
         pass
     finally:
-        if ws in _clients:
-            _clients.remove(ws)
+        clients.discard(websocket)
+        _client_locks.pop(websocket, None)

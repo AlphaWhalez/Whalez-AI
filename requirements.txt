@@ -1,5 +1,6 @@
 cryptography
 fastapi
+jinja2
 pyjwt
 pydantic>=2
 pyyaml
