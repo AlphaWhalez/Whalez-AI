@@ -1,5 +1,5 @@
 """API route modules for the Whalez-AI gateway."""
 
-from . import intent
+from . import chain, intent
 
-__all__ = ["intent"]
+__all__ = ["chain", "intent"]

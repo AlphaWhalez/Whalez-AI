@@ -1,4 +1,6 @@
 
+import asyncio
+
 from fastapi import APIRouter, FastAPI, HTTPException
 from pydantic import BaseModel
 
@@ -10,9 +12,11 @@ from core.controllers.orchestrator import (
 )
 from core.tls_engine.routes import attach_tls_routes
 from core.voice.bridge import router as voice_router
+from api.routes import chain as chain_routes
 from api.routes import intent as intent_routes
 from api.routes.history import router as history_router
 from fastapi.middleware.cors import CORSMiddleware
+from whalez_ai.chain import WhalezChain
 
 gateway = FastAPI(title="Whalez-AI Unified Gateway", version="2.0")
 orc = Orchestrator()
@@ -32,6 +36,7 @@ gateway.include_router(internal_api, prefix="/api")
 gateway.include_router(security_router)
 gateway.include_router(voice_router)
 gateway.include_router(intent_routes.router)
+gateway.include_router(chain_routes.router)
 gateway.include_router(history_router)
 gateway.include_router(orchestrator_router)
 mount_admin_console(gateway)
@@ -52,6 +57,18 @@ async def governance_reconcile(services: list[Service]):
         return res
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@gateway.on_event("startup")
+async def _start_block_builder():
+    chain = WhalezChain()
+
+    async def _loop():
+        while True:
+            chain.build_block_if_needed(max_txs=256)
+            await asyncio.sleep(3)
+
+    asyncio.create_task(_loop())
 
 
 # Legacy export maintained for compatibility with earlier tooling/tests.

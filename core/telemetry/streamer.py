@@ -9,10 +9,13 @@ import random
 from typing import Any, Awaitable, Callable, Dict
 
 from fastapi import WebSocket
+from whalez_ai.chain import WhalezChain
 
 clients: set[WebSocket] = set()
 _client_locks: Dict[WebSocket, asyncio.Lock] = {}
 _broadcast_gate = asyncio.Lock()
+
+_chain = WhalezChain()
 
 
 def _ensure_lock(websocket: WebSocket) -> asyncio.Lock:
@@ -110,6 +113,18 @@ _default_streamer = TelemetryStreamer()
 def _fanout_default(kind: str, data: Any) -> None:
     payload = _serialize_event(kind, data)
     _schedule(_broadcast(payload))
+    try:
+        event = json.loads(payload)
+        chain_payload = event.get("data")
+    except Exception:
+        if isinstance(data, (dict, list, str, int, float, bool)) or data is None:
+            chain_payload = data
+        else:
+            chain_payload = repr(data)
+    try:
+        _chain.submit_internal_event(kind, chain_payload)
+    except Exception:
+        pass
 
 
 async def log_event(kind: str, data: dict | str) -> None:
