@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Whalez-AI • Unified Console</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #05080f;
+        --panel: #0b1118;
+        --accent: #5d8bfd;
+        --success: #57f287;
+        --text: #ecf2ff;
+        --muted: #7a8aa1;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, rgba(45,73,158,.35), transparent 55%), var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      header {
+        padding: 32px 5vw 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      header h1 {
+        margin: 0;
+        font-size: clamp(28px, 4vw, 42px);
+        letter-spacing: -0.02em;
+      }
+      header p {
+        margin: 0;
+        max-width: 640px;
+        color: var(--muted);
+      }
+      main {
+        flex: 1;
+        padding: 0 5vw 40px;
+        display: grid;
+        gap: 24px;
+      }
+      .grid {
+        display: grid;
+        gap: 24px;
+      }
+      @media (min-width: 900px) {
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      .card {
+        background: rgba(12, 20, 33, 0.8);
+        border: 1px solid rgba(93, 139, 253, 0.25);
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: 0 18px 48px rgba(3, 6, 12, 0.55);
+        backdrop-filter: blur(12px);
+      }
+      .card h2 {
+        margin: 0 0 12px;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        background: rgba(93, 139, 253, 0.25);
+        border-radius: 999px;
+        padding: 4px 10px;
+        color: var(--accent);
+      }
+      #mint-log, #terminal {
+        font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+        background: var(--panel);
+        border-radius: 12px;
+        border: 1px solid rgba(93, 139, 253, 0.2);
+        padding: 14px 16px;
+        min-height: 160px;
+        overflow-y: auto;
+        line-height: 1.45;
+        color: #c8d7ff;
+      }
+      #terminal div {
+        color: #9dc0ff;
+      }
+      footer {
+        text-align: center;
+        padding: 28px 5vw;
+        color: var(--muted);
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Whalez-AI Unified Console</h1>
+      <p>Monitor orchestrator intents, DNS minting events, and signal link activity from a single synchronized gateway.</p>
+    </header>
+    <main>
+      <section class="card">
+        <h2><span class="badge">Pulse</span>Mint Logs</h2>
+        <div id="mint-log">
+          <div>Awaiting mint events…</div>
+        </div>
+        <h2 style="margin-top:24px;">
+          <span class="badge" style="background:rgba(87,242,135,0.2);color:var(--success);">Live</span>
+          Signal Stream
+        </h2>
+        <div id="terminal" style="background:#0b1118;padding:10px;height:150px;overflow:auto;border-radius:6px"></div>
+      </section>
+      <section class="grid">
+        <div class="card">
+          <h2><span class="badge">Governance</span>Policy Status</h2>
+          <p style="margin:0;color:var(--muted);">Policies enforced across orchestrated services will surface in the activity stream.</p>
+        </div>
+        <div class="card">
+          <h2><span class="badge">Signal Link</span>Bridge Monitor</h2>
+          <p style="margin:0;color:var(--muted);">Voice bridge interactions appear in real-time via the unified feed.</p>
+        </div>
+      </section>
+    </main>
+    <footer>
+      Whalez-AI &bull; Unified Gateway v2.0
+    </footer>
+    <script>
+      const mintBox = document.getElementById("mint-log");
+      function pushMint(line) {
+        const el = document.createElement("div");
+        el.textContent = line;
+        mintBox.appendChild(el);
+        mintBox.scrollTop = mintBox.scrollHeight;
+      }
+      pushMint("Mint telemetry connected. Waiting for DNS mint events…");
+    </script>
+    <script>
+      const scheme = window.location.protocol === "https:" ? "wss" : "ws";
+      let ws = new WebSocket(scheme + "://" + window.location.host + "/ws/signal");
+      ws.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        const box = document.getElementById("terminal");
+        const line = document.createElement("div");
+        const timestamp = new Date(data.timestamp * 1000).toLocaleTimeString();
+        const label = data.signal || data.event || "EVENT";
+        let details = "";
+        if (data.data) {
+          try {
+            details = typeof data.data === "string" ? data.data : JSON.stringify(data.data);
+          } catch (err) {
+            details = "";
+          }
+        }
+        line.textContent = `[${label}] ${timestamp}${details ? " • " + details : ""}`;
+        box.appendChild(line);
+        box.scrollTop = box.scrollHeight;
+      };
+      ws.onclose = () => {
+        const box = document.getElementById("terminal");
+        const notice = document.createElement("div");
+        notice.textContent = "[DISCONNECTED] Stream closed";
+        box.appendChild(notice);
+      };
+    </script>
+  </body>
+</html>
