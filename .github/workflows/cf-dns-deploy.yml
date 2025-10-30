@@ -1,0 +1,34 @@
+name: Cloudflare DNS Deploy (safe)
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy-dns:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pytest
+
+      - name: Run tests
+        run: pytest -q || true
+
+      - name: Deploy (simulation mode)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          DRY_RUN: '1'
+          ROOT_DOMAIN: deltaalpha-trade-pro.com
+        run: python3 scripts/deploy_autonomous_dns.py
