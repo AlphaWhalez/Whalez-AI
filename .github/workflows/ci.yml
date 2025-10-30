@@ -23,7 +23,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt || true
           # minimal deps used by our modules/tests
-          pip install fastapi starlette pytest
+          pip install fastapi starlette pytest httpx
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
       - name: Run build tests
         run: pytest -q
 
