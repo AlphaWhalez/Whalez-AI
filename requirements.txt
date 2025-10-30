@@ -5,3 +5,4 @@ pyjwt
 pydantic>=2
 pyyaml
 uvicorn
+httpx

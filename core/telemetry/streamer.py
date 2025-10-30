@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
 import random
-from typing import Dict
+from typing import Any, Awaitable, Callable, Dict
 
 from fastapi import WebSocket
 
@@ -46,31 +47,68 @@ def _normalize_signal(kind: str) -> str:
     return token.upper()
 
 
-async def log_event(kind: str, data: dict | str) -> None:
-    """Fan out structured orchestrator events to connected consoles."""
+def _schedule(coro: Awaitable[Any]) -> None:
     try:
-        loop = asyncio.get_event_loop()
-        timestamp = loop.time()
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return
+    loop.create_task(coro)
+
+
+def _serialize_event(kind: str, data: Any) -> str:
+    loop = asyncio.get_event_loop()
+    timestamp = loop.time()
+    event = {
+        "event": kind,
+        "signal": _normalize_signal(kind),
+        "data": data,
+        "timestamp": timestamp,
+    }
+    try:
+        payload = json.dumps(event)
+    except TypeError:
         event = {
             "event": kind,
             "signal": _normalize_signal(kind),
-            "data": data,
+            "data": repr(data),
             "timestamp": timestamp,
         }
-        try:
-            payload = json.dumps(event)
-        except TypeError:
-            event = {
-                "event": kind,
-                "signal": _normalize_signal(kind),
-                "data": repr(data),
-                "timestamp": timestamp,
-            }
-            payload = json.dumps(event)
-        await _broadcast(payload)
-    except Exception:
-        # Streaming must never interfere with business logic
-        return None
+        payload = json.dumps(event)
+    return payload
+
+
+class TelemetryStreamer:
+    """Fan-out utility that supports synchronous emits with async listeners."""
+
+    def __init__(self) -> None:
+        self._listeners: list[Callable[[str, Any], Any]] = []
+
+    def on_emit(self, func: Callable[[str, Any], Any]) -> Callable[[str, Any], Any]:
+        self._listeners.append(func)
+        return func
+
+    def emit(self, kind: str, data: Any) -> None:
+        for listener in list(self._listeners):
+            try:
+                result = listener(kind, data)
+                if inspect.isawaitable(result):
+                    _schedule(result)
+            except Exception:
+                continue
+
+
+_default_streamer = TelemetryStreamer()
+
+
+@_default_streamer.on_emit
+def _fanout_default(kind: str, data: Any) -> None:
+    payload = _serialize_event(kind, data)
+    _schedule(_broadcast(payload))
+
+
+async def log_event(kind: str, data: dict | str) -> None:
+    """Fan out structured orchestrator events to connected consoles."""
+    _default_streamer.emit(kind, data)
 
 
 async def stream_events(websocket: WebSocket) -> None:
